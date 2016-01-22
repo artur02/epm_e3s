@@ -5,21 +5,24 @@ Created on Tue Jan 19 14:02:36 2016
 @author: Artur_Herczeg
 """
 
+from utilities import loadJsonFile, createDir
+
 import sys
 import requests
 from requests.auth import HTTPBasicAuth
 import json
 import os.path
+import datetime
 
 import pandas as pd
+
+from sqlalchemy import create_engine
+
+dataFolder = 'data'
 
 class EmployeeStatus(object):
     EXTENDEDLEAVE = "Extended leave"
 
-
-def loadConfig(fileName):
-    f = open(fileName)
-    return json.load(f)
 
 def getEmptyQuery():
     return {
@@ -30,7 +33,7 @@ def getEmptyQuery():
         }
 
 def getAuthData():
-    config = loadConfig("password.cfg")    
+    config = loadJsonFile("password.cfg")    
     
     user=config["service"]["user"]
     pas =config["service"]["pass"]
@@ -95,15 +98,11 @@ def getEmployees(auth, limit):
         df = pd.DataFrame(d, index=idx)
         return df
     
-    def saveDataCache(data):
-        raw_file = open("rawdata.json", 'w')
+    def saveDataCache(path, data):
+        raw_file = open(path, 'w')
         raw_file.truncate()
         raw_file.write(json.dumps(data))
         raw_file.close()
-        
-    def loadDataCache():
-        f = open("rawdata.json")
-        return json.load(f)
     
     query = getEmptyQuery()   
     #query = filterByTitle(query, "Software Engineer")
@@ -116,15 +115,17 @@ def getEmployees(auth, limit):
             'metaType': 'meta:people-suite:people-api:com.epam.e3s.app.people.api.data.EmployeeEntity',
             'query': json.dumps(query)
         }
+
+    rawDataPath = os.path.join(dataFolder, 'rawdata.json')
     
 
-    if(not os.path.exists("rawdata.json")):
+    if(not os.path.exists(rawDataPath)):
         print("No local data cache (rawdata.json) found, getting data from service...")    
         result = executeQuery(fullQuery, auth)
-        saveDataCache(result)
+        saveDataCache(rawDataPath, result)
     else:
         print("Local data cache (rawdata.json) found, reading...")
-        result = loadDataCache()
+        result = loadJsonFile(rawDataPath)
         
     print("Total number of employees: %d" % result["total"])
     return getDataFrame(result)
@@ -140,17 +141,22 @@ def executeQuery(queryParam, auth):
         sys.exit(0)
     else:
         return  r.json()
+        
+def persistData(data):
+    logging = False
+    
+    engine = create_engine('sqlite:///' + dataFolder + '/e3s.db', echo=logging)
+    data.to_sql("employees_"+str(datetime.date.today()), engine, if_exists='replace')
+
+createDir(dataFolder)
 
 user, pas = getAuthData()
 auth = HTTPBasicAuth(user, pas)
 
 
 data = getEmployees(auth, { 'start': 0, 'limit': 200 }) 
-        
+persistData(data)
 
-#print(data)
-data.to_pickle('dump/data.pickle')
-data.to_excel('dump/data.xlsx')
 
 
 print("================ Non-billables ================ \n")
