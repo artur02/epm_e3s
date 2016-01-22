@@ -6,9 +6,9 @@ Created on Tue Jan 19 14:02:36 2016
 """
 
 from utilities import loadJsonFile, createDir
+import E3S.Employees.DSL as dsl
+import E3S.connection as e3s
 
-import sys
-import requests
 from requests.auth import HTTPBasicAuth
 import json
 import os.path
@@ -20,57 +20,14 @@ from sqlalchemy import create_engine
 
 dataFolder = 'data'
 
-class EmployeeStatus(object):
-    EXTENDEDLEAVE = "Extended leave"
-
-
-def getEmptyQuery():
-    return {
-            "statements":[{"query":"*"}],
-            "filters":[],
-            "start":0,
-            "limit":10
-        }
-
 def getAuthData():
     config = loadJsonFile("password.cfg")    
     
     user=config["service"]["user"]
     pas =config["service"]["pass"]
     return (user, pas)
+    
 
-def filterByTitle(query, title):
-    if(title is not None):
-        if('statements' not in query):
-            query["statements"] = []
-        titleQuery = title = {
-                    "query": "title:\"" + title + "\""
-                }
-        query["statements"].append(titleQuery)
-    return query
-    
-def filterByCountry(query, country):
-    if(country is not None):
-        countryFilter = {
-                "field":"countrySum.untouchable",
-                "values":[country]
-            }
-        query["filters"].append(countryFilter)
-    return query
-    
-def filterByPrimarySkill(query, skill):
-    if(skill is not None):
-        skillFilter = {
-                "field": "primarySkillSum.untouchable",
-                "values":[skill]
-            }
-        query["filters"].append(skillFilter)
-    return query
-    
-def setLimits(query, start = 0, limit = 10):
-    query["start"] = start
-    query["limit"] = limit
-    return query
 
 def getEmployees(auth, limit):
     def getDataFrame(data):
@@ -104,12 +61,12 @@ def getEmployees(auth, limit):
         raw_file.write(json.dumps(data))
         raw_file.close()
     
-    query = getEmptyQuery()   
-    #query = filterByTitle(query, "Software Engineer")
-    query = filterByCountry(query, "Hungary")
-    query = filterByPrimarySkill(query, ".NET")
+    query = e3s.getEmptyQuery()   
+    #query = dsl.filterByTitle(query, "Software Engineer")
+    query = dsl.filterByCountry(query, "Hungary")
+    query = dsl.filterByPrimarySkill(query, ".NET")
     if(limit is not None):
-        query = setLimits(query, limit['start'], limit['limit'])
+        query = e3s.setLimits(query, limit['start'], limit['limit'])
     
     fullQuery = {
             'metaType': 'meta:people-suite:people-api:com.epam.e3s.app.people.api.data.EmployeeEntity',
@@ -121,7 +78,7 @@ def getEmployees(auth, limit):
 
     if(not os.path.exists(rawDataPath)):
         print("No local data cache (rawdata.json) found, getting data from service...")    
-        result = executeQuery(fullQuery, auth)
+        result = e3s.executeQuery(fullQuery, auth)
         saveDataCache(rawDataPath, result)
     else:
         print("Local data cache (rawdata.json) found, reading...")
@@ -129,18 +86,6 @@ def getEmployees(auth, limit):
         
     print("Total number of employees: %d" % result["total"])
     return getDataFrame(result)
-    
-def executeQuery(queryParam, auth):
-    baseUrl = 'https://telescope.epam.com/rest/e3s-eco-scripting-impl/0.1.0/data/searchFts'
-    r = requests.get(baseUrl,  params=queryParam, auth=auth)
-    print(r.url)
-    
-    if r.status_code != 200 or r.headers['content-type'] == "text/html":
-        print("request failed")
-        print(r.text)
-        sys.exit(0)
-    else:
-        return  r.json()
         
 def persistData(data):
     logging = False
@@ -160,7 +105,7 @@ persistData(data)
 
 
 print("================ Non-billables ================ \n")
-nonbillables = data[(data.billable == False) & (data.status != EmployeeStatus.EXTENDEDLEAVE)][['name', 'title']]
+nonbillables = data[(data.billable == False) & (data.status != dsl.EmployeeStatus.EXTENDEDLEAVE)][['name', 'title']]
 print(nonbillables)
 print("--- Count: %d" % nonbillables.name.count())
 print("\n\n")
