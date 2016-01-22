@@ -58,10 +58,12 @@ def getEmployees(auth, limit):
     print("Total number of employees: %d" % result["total"])
     return empdata.dataFrame
     
-def printStat(df, title):
+def printStat(df, title, plot=None):
     print("================ %s ================ \n" % title)
     print(df)
     print("--- Count: %d" % len(df))
+    if plot is not None:
+        df.plot(kind=plot)
     print("\n")
 
 createDir(dataFolder)
@@ -76,4 +78,5 @@ empstat = stats.EmployeeStats(data)
 printStat(empstat.getNonbillables(), "Non-billables")
 printStat(empstat.getRMs(), "RMs")
 printStat(empstat.getCities(), "Cities")
+printStat(empstat.getTitleCount(), "Titles", plot='barh')
 

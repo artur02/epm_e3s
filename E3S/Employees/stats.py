@@ -22,4 +22,7 @@ class EmployeeStats(object):
         return self.df[self.df.isRM == True][self.selectedColumns]
         
     def getCities(self):
-        return self.df.city.unique()
+        return self.df.groupby(self.df.city).city.count()
+        
+    def getTitleCount(self):
+        return self.df.groupby(self.df.title).title.count().sort_values()
