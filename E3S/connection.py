@@ -8,9 +8,10 @@ Created on Fri Jan 22 10:58:53 2016
 import requests
 import sys
 
-def setLimits(query, start = 0, limit = 10):
+def setLimits(query, limit):
+    start, count = limit
     query["start"] = start
-    query["limit"] = limit
+    query["limit"] = count
     return query
     
 def getEmptyQuery():
