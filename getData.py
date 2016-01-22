@@ -9,6 +9,7 @@ from utilities import loadJsonFile, createDir
 import E3S.Employees.DSL as dsl
 from E3S.Employees.data import EmployeeData
 import E3S.connection as e3s
+import E3S.Employees.stats as stats
 
 from requests.auth import HTTPBasicAuth
 import json
@@ -57,6 +58,12 @@ def getEmployees(auth, limit):
     
     print("Total number of employees: %d" % result["total"])
     return empdata.dataFrame
+    
+def printStat(df, title):
+    print("================ %s ================ \n" % title)
+    print(df)
+    print("--- Count: %d" % len(df))
+    print("\n")
 
 createDir(dataFolder)
 
@@ -65,22 +72,25 @@ auth = HTTPBasicAuth(user, pas)
 
 
 data = getEmployees(auth, (0, 200)) 
+empstat = stats.EmployeeStats(data)
 
+printStat(empstat.getNonbillables(), "Non-billables")
+printStat(empstat.getRMs(), "RMs")
+printStat(empstat.getCities(), "Cities")
 
-
-print("================ Non-billables ================ \n")
-nonbillables = data[(data.billable == False) & (data.status != dsl.EmployeeStatus.EXTENDEDLEAVE)][['name', 'title']]
-print(nonbillables)
-print("--- Count: %d" % nonbillables.name.count())
-print("\n\n")
-
-print("================ RMs ================ \n")
-rms = data[data.isRM == True][['name', 'title']]
-print(rms)
-print("--- Count: %d" % rms.name.count())
-print("\n\n")
-
-print("================ Cities ================ \n")
-print(data.city.unique())
-print("\n\n")
+#print("================ Non-billables ================ \n")
+#nonbillables = empstat.getNonbillables()
+#print(nonbillables)
+#print("--- Count: %d" % nonbillables.name.count())
+#print("\n\n")
+#
+#print("================ RMs ================ \n")
+#rms = empstat.getRMs()
+#print(rms)
+#print("--- Count: %d" % rms.name.count())
+#print("\n\n")
+#
+#print("================ Cities ================ \n")
+#print(empstat.getCities())
+#print("\n\n")
 
