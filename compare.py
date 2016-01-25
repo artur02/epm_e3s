@@ -4,16 +4,16 @@ Created on Fri Jan 22 13:15:38 2016
 
 @author: Artur_Herczeg
 """
-
-from E3S.Employees.data import EmployeeData
 import numpy as np
 import pandas as pd
+
+from E3S.Employees.data import EmployeeData
 
 emps1 = EmployeeData(table="employees_2016-01-22")
 emps2 = EmployeeData(table="employees_2016-01-22")
 
-df1 = emps1.dataFrame
-df2 = emps2.dataFrame
+df1 = emps1.data_frame
+df2 = emps2.data_frame
 #df2.loc[22, 'title'] = 'AAAAAAAAAAAAAAAAAAAAAAAA'
 
 ne_stacked = (df1 != df2).stack()

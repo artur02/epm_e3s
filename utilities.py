@@ -8,10 +8,10 @@ Created on Fri Jan 22 10:42:23 2016
 import json
 import os
 
-def loadJsonFile(fileName):
+def load_json_file(fileName):
     f = open(fileName)
     return json.load(f)
-    
-def createDir(path):
+
+def create_dir(path):
     if not os.path.exists(path):
         os.makedirs(path)
