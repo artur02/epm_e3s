@@ -24,7 +24,7 @@ class EmployeeStats(object):
         return self.df[self.df.isRM == True][self.selectedColumns]
 
     def get_cities(self):
-        return self.df.groupby(self.df.city).city.count()
+        return self.df.groupby(self.df.city).city.count().to_frame(name='cities')
 
     def get_title_count(self):
-        return self.df.groupby(self.df.title).title.count().sort_values()
+        return self.df.groupby(self.df.title).title.count().sort_values().to_frame(name='title count')

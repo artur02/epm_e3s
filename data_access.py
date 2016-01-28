@@ -18,9 +18,8 @@ from utilities import load_json_file, create_dir, isFileStale
 import E3S.Employees.DSL as dsl
 from E3S.Employees.data import EmployeeData
 import E3S.connection as e3s
-import E3S.Employees.stats as stats
 
-FOLDER_DATA = 'data'
+from config import DATA_PATH
 
 def get_auth_data():
     config = load_json_file("password.cfg")
@@ -53,7 +52,7 @@ def get_employees(auth, name, filters):
         'query': json.dumps(query)
     }
 
-    raw_data_path = os.path.join(FOLDER_DATA, 'rawdata_%s.json' % name)
+    raw_data_path = os.path.join(DATA_PATH, 'rawdata_%s.json' % name)
 
     if not is_cache_available(raw_data_path):
         print("No local data cache (%s) found (or outdated), getting data from service..." % raw_data_path)
@@ -78,7 +77,7 @@ def print_stat(df, title, save=True, plot_kind=None, plot_name=None):
         fig = plt.figure()
         df.plot(kind=plot_kind, title=title)
         if plot_name is not None:
-            figurepath = os.path.join(FOLDER_DATA, '%s_%s.png' % (plot_name, title))
+            figurepath = os.path.join(DATA_PATH, '%s_%s.png' % (plot_name, title))
 
             plt.gcf().subplots_adjust(left=0.35)
             fig.savefig(figurepath, dpi=300)
@@ -95,12 +94,6 @@ def process_java_hungary_employees(auth):
         lambda x: e3s.set_limits(x, (0, 1000))
     ]
     data = get_employees(auth, name=NAME, filters=java_hungary_filters)
-    empstat = stats.EmployeeStats(data)
-
-    print_stat(empstat.get_nonbillables(), "Non-billables")
-    print_stat(empstat.get_RMs(), "RMs")
-    print_stat(empstat.get_cities(), "Cities")
-    print_stat(empstat.get_title_count(), "Titles", plot_kind='barh', plot_name=NAME)
 
     return (NAME, data)
 
@@ -113,16 +106,10 @@ def process_dotnet_hungary_employees(auth):
         lambda x: e3s.set_limits(x, (0, 1000))
     ]
     data = get_employees(auth, name=NAME, filters=dotnet_hungary_filters)
-    empstat = stats.EmployeeStats(data)
-
-    print_stat(empstat.get_nonbillables(), "Non-billables")
-    print_stat(empstat.get_RMs(), "RMs")
-    print_stat(empstat.get_cities(), "Cities")
-    print_stat(empstat.get_title_count(), "Titles", plot_kind='barh', plot_name=NAME)
 
     return (NAME, data)
 
-create_dir(FOLDER_DATA)
+create_dir(DATA_PATH)
 
 USER, PASSWORD = get_auth_data()
 AUTH = HTTPBasicAuth(USER, PASSWORD)
