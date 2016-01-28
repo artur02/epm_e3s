@@ -22,12 +22,14 @@ def dump_stats(result, console=True, excel=True):
         if console:
             dump.to_console()
         if excel:
-            full_path = os.path.join(DATA_PATH, "%s.xlsx" % name)
             dump.to_excel(full_path, dump.name)
     
     for name, df in exec_result.items():
+        full_path = os.path.join(DATA_PATH, "%s.xlsx" % name)
 
         print("*************** %s *******************" % name)        
+        if excel:
+            print("Writing to excel file: '%s'" % full_path)
         
         empstat = stats.EmployeeStats(df)
         
