@@ -6,12 +6,16 @@ Created on Mon Jan 25 10:41:19 2016
 """
 import data_access
 import os
+import matplotlib
+
 from data_access import process_java_hungary_employees
 from data_access import process_dotnet_hungary_employees
 from visualize import Dump
 import E3S.Employees.stats as stats
 
 from config import DATA_PATH
+
+matplotlib.style.use('ggplot')
 
 def get_data(steps):
     return { name:df for name, df in [step(data_access.AUTH) for step in steps]}

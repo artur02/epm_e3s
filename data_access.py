@@ -10,7 +10,6 @@ import os.path
 
 from requests.auth import HTTPBasicAuth
 
-import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.style.use('ggplot')
 
@@ -68,22 +67,6 @@ def get_employees(auth, name, filters):
 
     print("Total number of employees: %d" % result["total"])
     return empdata.data_frame
-
-def print_stat(df, title, save=True, plot_kind=None, plot_name=None):
-    print("================ %s ================ \n" % title)
-    print(df)
-    print("--- Count: %d" % len(df))
-    if plot_kind is not None:
-        fig = plt.figure()
-        df.plot(kind=plot_kind, title=title)
-        if plot_name is not None:
-            figurepath = os.path.join(DATA_PATH, '%s_%s.png' % (plot_name, title))
-
-            plt.gcf().subplots_adjust(left=0.35)
-            fig.savefig(figurepath, dpi=300)
-    if save:
-        pass
-    print("\n")
 
 def process_java_hungary_employees(auth):
     NAME = 'JavaHungary'
